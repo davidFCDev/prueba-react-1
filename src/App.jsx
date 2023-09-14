@@ -1,9 +1,10 @@
 import "./App.css";
 import responseMovies from "./mocks/results.json";
 import { Movies } from "./components/Movies";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useEffect } from "react";
 import { useId } from "react";
+import { searchMovies } from "./services/movies";
 
 function useSearch() {
   const [search, updateSearch] = useState("");
@@ -31,13 +32,38 @@ function useSearch() {
 
   return { search, updateSearch, error };
 }
+
+function useMovies({ search }) {
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const previousSearch = useRef(search);
+
+  const getMovies = useCallback(async () => {
+    if (search === previousSearch.current) return;
+    try {
+      setLoading(true);
+      setError(null);
+      previousSearch.current = search;
+      const movies = await searchMovies({ search });
+      setMovies(movies);
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [search]);
+
+  return { movies, loading, error, getMovies };
+}
+
 function App() {
   const { search, updateSearch, error } = useSearch();
-  const movies = responseMovies.Search;
+  const { movies, loading, getMovies } = useMovies({ search });
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    console.log({ search });
+    getMovies({ search });
   };
 
   const handleChange = (event) => {
@@ -58,11 +84,10 @@ function App() {
           />
           <button type="submit">Buscar</button>
         </form>
+        {error && <p className="error">{error}</p>}
       </header>
 
-      <main>
-        <Movies movies={movies} />
-      </main>
+      <main>{loading ? <p>Loading...</p> : <Movies movies={movies} />}</main>
     </div>
   );
 }
