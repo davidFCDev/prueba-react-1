@@ -35,15 +35,6 @@ function App() {
   const { search, updateSearch, error } = useSearch();
   const movies = responseMovies.Search;
 
-  const mappedMovies = movies.map((movie) => {
-    return {
-      id: movie.imdbID,
-      title: movie.Title,
-      year: movie.Year,
-      poster: movie.Poster,
-    };
-  });
-
   const handleSubmit = (event) => {
     event.preventDefault();
     console.log({ search });
@@ -70,7 +61,7 @@ function App() {
       </header>
 
       <main>
-        <Movies movies={mappedMovies} />
+        <Movies movies={movies} />
       </main>
     </div>
   );
