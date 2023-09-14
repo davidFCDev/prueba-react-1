@@ -33,7 +33,7 @@ function useSearch() {
   return { search, updateSearch, error };
 }
 
-function useMovies({ search }) {
+function useMovies({ search, sort }) {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -54,12 +54,17 @@ function useMovies({ search }) {
     }
   }, [search]);
 
-  return { movies, loading, error, getMovies };
+  const sortedMovies = sort
+    ? [...movies].sort((a, b) => a.year - b.year)
+    : movies;
+
+  return { movies: sortedMovies, loading, error, getMovies };
 }
 
 function App() {
+  const [sort, setSort] = useState(false);
   const { search, updateSearch, error } = useSearch();
-  const { movies, loading, getMovies } = useMovies({ search });
+  const { movies, loading, getMovies } = useMovies({ search, sort });
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -69,6 +74,10 @@ function App() {
   const handleChange = (event) => {
     const newSearch = event.target.value;
     updateSearch(newSearch);
+  };
+
+  const handleSort = () => {
+    setSort(!sort);
   };
 
   return (
@@ -82,6 +91,7 @@ function App() {
             type="text"
             placeholder="Busca una película"
           />
+          <input type="checkbox" onChange={handleSort} checked={sort} />
           <button type="submit">Buscar</button>
         </form>
         {error && <p className="error">{error}</p>}
